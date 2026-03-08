@@ -179,43 +179,47 @@ def render_aes() -> None:
 
 
 def render_rsa() -> None:
-    st.subheader("RSA")
+    st.subheader("RSA — Chiffrement Asymétrique")
 
-    prime_options = [
-        17,
-        19,
-        23,
-        29,
-        31,
-        37,
-        41,
-        43,
-        47,
-        53,
-        59,
-        61,
-        67,
-        71,
-        73,
-        79,
-        83,
-        89,
-        97,
-    ]
+    # ── Introduction ──────────────────────────────────────────────
+    st.markdown(
+        """
+        **RSA** (Rivest–Shamir–Adleman, 1977) est un algorithme de chiffrement **asymétrique** :
+        il utilise une paire de clés — une **clé publique** pour chiffrer et une **clé privée** pour déchiffrer.
+        Sa sécurité repose sur la difficulté de **factoriser** un grand entier `n = p × q`.
+
+        ---
+        ### Étape 1 — Choisir deux nombres premiers distincts `p` et `q`
+        Ces deux premiers sont **secrets**. Leur produit `n` forme le **module RSA** utilisé publiquement.
+        > Si `p = q`, RSA est immédiatement cassable (il suffit de calculer √n).
+        """
+    )
+
+    prime_options = [17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        p = st.selectbox("Prime p", options=prime_options, index=0)
+        p = st.selectbox("Premier p", options=prime_options, index=0)
     with col2:
-        q = st.selectbox("Prime q", options=prime_options, index=1)
+        q = st.selectbox("Premier q", options=prime_options, index=1)
     with col3:
-        e = st.number_input("Public exponent e", min_value=3, value=5, step=2)
-
-    message = st.text_input("Message", value="HELLO")
+        e = st.number_input("Exposant public e", min_value=3, value=5, step=2)
 
     if p == q:
-        st.error("Choose different primes for p and q.")
+        st.error("`p` et `q` doivent être différents — sinon RSA est trivial à casser.")
         return
+
+    st.markdown(
+        """
+        ---
+        ### Étape 2 — Calculer `n` et `φ(n)`
+        - **`n = p × q`** : le module RSA, partagé publiquement.
+        - **`φ(n) = (p−1)(q−1)`** : l'indicatrice d'Euler, gardée **secrète**.
+          Elle représente le nombre d'entiers inférieurs à `n` qui sont premiers avec lui.
+        """
+    )
+
+    message = st.text_input("Message à chiffrer", value="HELLO")
 
     try:
         values = generate_rsa_components(p, q, int(e))
@@ -223,10 +227,43 @@ def render_rsa() -> None:
         st.error(str(exc))
         return
 
-    st.write(f"`n = {values['n']}`")
-    st.write(f"`phi(n) = {values['phi']}`")
-    st.write(f"`public key = (e={values['e']}, n={values['n']})`")
-    st.write(f"`private exponent d = {values['d']}`")
+    st.info(
+        f"`n = p × q = {p} × {q} = {values['n']}`  \n"
+        f"`φ(n) = (p−1)(q−1) = {p-1} × {q-1} = {values['phi']}`"
+    )
+
+    st.markdown(
+        f"""
+        ---
+        ### Étape 3 — Choisir l'exposant public `e`
+        `e` doit vérifier **1 < e < φ(n)** et **pgcd(e, φ(n)) = 1** (e premier avec φ(n)).
+        La clé publique est la paire **`(e={values['e']}, n={values['n']})`** — partageable avec tout le monde.
+
+        ---
+        ### Étape 4 — Calculer l'exposant privé `d`
+        `d` est l'**inverse modulaire** de `e` modulo `φ(n)`, calculé via l'algorithme d'Euclide Étendu :
+        > `e × d ≡ 1 (mod φ(n))`
+
+        La clé privée est **`d = {values['d']}`** — à ne **jamais** divulguer.
+        """
+    )
+
+    st.success(
+        f"Clé publique  : `(e={values['e']}, n={values['n']})`  \n"
+        f"Clé privée    : `d = {values['d']}`"
+    )
+
+    # ── Chiffrement ───────────────────────────────────────────────
+    st.markdown(
+        """
+        ---
+        ### Étape 5 — Chiffrement
+        Chaque lettre du message est convertie en sa valeur ASCII, puis chiffrée :
+        > `C = M^e mod n`
+
+        Le résultat `C` est le **chiffré** — illisible sans la clé privée `d`.
+        """
+    )
 
     try:
         ciphertext, enc_steps = rsa_encrypt_text(message, values["n"], values["e"])
@@ -234,19 +271,39 @@ def render_rsa() -> None:
         st.warning(str(exc))
         return
 
+    st.text_input("Chiffré (entiers)", value=", ".join(str(x) for x in ciphertext))
+
+    with st.expander("Voir les étapes de chiffrement lettre par lettre"):
+        st.dataframe(enc_steps, use_container_width=True, hide_index=True)
+
+    # ── Déchiffrement ─────────────────────────────────────────────
+    st.markdown(
+        """
+        ---
+        ### Étape 6 — Déchiffrement
+        Le destinataire utilise sa clé privée `d` pour retrouver le message original :
+        > `M = C^d mod n`
+
+        Grâce à la propriété d'Euler : `(M^e)^d ≡ M (mod n)`.
+        """
+    )
+
     decrypted, dec_steps = rsa_decrypt_numbers(ciphertext, values["n"], values["d"])
+    st.text_input("Message déchiffré", value=decrypted)
 
-    st.text_input("Ciphertext (numbers)", value=", ".join(str(x) for x in ciphertext))
-    st.text_input("Decrypted text", value=decrypted)
+    with st.expander("Voir les étapes de déchiffrement"):
+        st.dataframe(dec_steps, use_container_width=True, hide_index=True)
 
-    left, right = st.columns(2)
-    with left:
-        st.write("Encryption steps")
-        st.dataframe(enc_steps, width="stretch", hide_index=True)
-    with right:
-        st.write("Decryption steps")
-        st.dataframe(dec_steps, width="stretch", hide_index=True)
-
+    # ── Note sécurité ─────────────────────────────────────────────
+    st.markdown(
+        """
+        ---
+        ### Note sur la sécurité
+        Cette démo utilise de **petits nombres premiers** pour la lisibilité.
+        En pratique, RSA sécurisé utilise des clés de **2048 à 4096 bits**
+        (nombres de plusieurs centaines de chiffres) rendant la factorisation de `n` computationnellement infaisable.
+        """
+    )
 
 def render_diffie_hellman() -> None:
     st.subheader("Diffie-Hellman Key Exchange")
