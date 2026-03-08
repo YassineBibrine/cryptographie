@@ -43,10 +43,26 @@ def aes_encrypt_text(plaintext: str, passphrase: str) -> Tuple[str, List[Dict[st
     ciphertext = cipher.encrypt(padded)
 
     steps = [
-        {"step": "Key derivation", "value": f"SHA-256(passphrase)[:16] = {key.hex()}"},
-        {"step": "Plaintext bytes", "value": plaintext_bytes.hex()},
-        {"step": "PKCS7 padded", "value": padded.hex()},
-        {"step": "AES-128 ECB ciphertext", "value": ciphertext.hex()},
+        {
+            "step": "Key derivation",
+            "value": f"SHA-256(passphrase)[:16] = {key.hex()}",
+            "explanation": "Hash the passphrase and keep 16 bytes to build an AES-128 key.",
+        },
+        {
+            "step": "Plaintext bytes",
+            "value": plaintext_bytes.hex(),
+            "explanation": "Convert readable text to bytes so AES can process it.",
+        },
+        {
+            "step": "PKCS7 padded",
+            "value": padded.hex(),
+            "explanation": "Pad the message to a multiple of 16 bytes (AES block size).",
+        },
+        {
+            "step": "AES-128 ECB ciphertext",
+            "value": ciphertext.hex(),
+            "explanation": "Encrypt padded bytes block-by-block to produce ciphertext.",
+        },
     ]
 
     return ciphertext.hex(), steps
@@ -61,10 +77,26 @@ def aes_decrypt_text(ciphertext_hex: str, passphrase: str) -> Tuple[str, List[Di
     decrypted = unpad(decrypted_padded, AES.block_size)
 
     steps = [
-        {"step": "Key derivation", "value": f"SHA-256(passphrase)[:16] = {key.hex()}"},
-        {"step": "Ciphertext bytes", "value": ciphertext.hex()},
-        {"step": "AES decrypt (padded)", "value": decrypted_padded.hex()},
-        {"step": "PKCS7 unpadded", "value": decrypted.hex()},
+        {
+            "step": "Key derivation",
+            "value": f"SHA-256(passphrase)[:16] = {key.hex()}",
+            "explanation": "Recreate the exact same AES key from the passphrase.",
+        },
+        {
+            "step": "Ciphertext bytes",
+            "value": ciphertext.hex(),
+            "explanation": "Decode hexadecimal input back into raw encrypted bytes.",
+        },
+        {
+            "step": "AES decrypt (padded)",
+            "value": decrypted_padded.hex(),
+            "explanation": "Decrypt blocks to recover padded plaintext bytes.",
+        },
+        {
+            "step": "PKCS7 unpadded",
+            "value": decrypted.hex(),
+            "explanation": "Remove padding bytes to restore the original plaintext.",
+        },
     ]
 
     return decrypted.decode("utf-8", errors="replace"), steps
@@ -101,6 +133,7 @@ def rsa_encrypt_text(text: str, n: int, e: int) -> Tuple[List[int], List[Dict[st
                 "char": ch,
                 "m": str(m),
                 "c = m^e mod n": str(c),
+                "explanation": "Convert character to an integer m, then apply the RSA public exponent.",
             }
         )
 
@@ -121,6 +154,7 @@ def rsa_decrypt_numbers(ciphertext: List[int], n: int, d: int) -> Tuple[str, Lis
                 "c": str(c),
                 "m = c^d mod n": str(m),
                 "char": ch,
+                "explanation": "Use private exponent d to recover m, then map m back to a character.",
             }
         )
 
@@ -150,10 +184,26 @@ def diffie_hellman_exchange(p: int, g: int, private_a: int, private_b: int) -> T
     }
 
     steps = [
-        {"step": "Alice public key", "value": f"A = g^a mod p = {public_a}"},
-        {"step": "Bob public key", "value": f"B = g^b mod p = {public_b}"},
-        {"step": "Alice shared", "value": f"s = B^a mod p = {shared_a}"},
-        {"step": "Bob shared", "value": f"s = A^b mod p = {shared_b}"},
+        {
+            "step": "Alice public key",
+            "value": f"A = g^a mod p = {public_a}",
+            "explanation": "Alice publishes A without revealing her private exponent a.",
+        },
+        {
+            "step": "Bob public key",
+            "value": f"B = g^b mod p = {public_b}",
+            "explanation": "Bob publishes B without revealing his private exponent b.",
+        },
+        {
+            "step": "Alice shared",
+            "value": f"s = B^a mod p = {shared_a}",
+            "explanation": "Alice combines Bob's public value with her private key.",
+        },
+        {
+            "step": "Bob shared",
+            "value": f"s = A^b mod p = {shared_b}",
+            "explanation": "Bob performs the symmetric computation and reaches the same secret.",
+        },
     ]
 
     return values, steps
@@ -259,11 +309,31 @@ def ecc_diffie_hellman(private_a: int, private_b: int) -> Tuple[Dict[str, str], 
     }
 
     steps = [
-        {"step": "Alice public point", "value": "PA = a * G"},
-        {"step": "Bob public point", "value": "PB = b * G"},
-        {"step": "Alice shared", "value": "S = a * PB"},
-        {"step": "Bob shared", "value": "S = b * PA"},
-        {"step": "Result", "value": "Both sides obtain the same elliptic-curve point."},
+        {
+            "step": "Alice public point",
+            "value": "PA = a * G",
+            "explanation": "Alice multiplies the base point G by her private scalar a.",
+        },
+        {
+            "step": "Bob public point",
+            "value": "PB = b * G",
+            "explanation": "Bob does the same with his private scalar b.",
+        },
+        {
+            "step": "Alice shared",
+            "value": "S = a * PB",
+            "explanation": "Alice multiplies Bob's public point by a.",
+        },
+        {
+            "step": "Bob shared",
+            "value": "S = b * PA",
+            "explanation": "Bob multiplies Alice's public point by b.",
+        },
+        {
+            "step": "Result",
+            "value": "Both sides obtain the same elliptic-curve point.",
+            "explanation": "Elliptic-curve group properties guarantee both shared points match.",
+        },
     ]
 
     return values, steps

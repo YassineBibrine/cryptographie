@@ -7,13 +7,13 @@ def fermat_test(n: int, rounds: int = 5, seed: int = 42) -> Tuple[bool, List[Dic
     steps: List[Dict[str, str]] = []
 
     if n < 2:
-        steps.append({"round": "init", "details": "n < 2 => composite"})
+        steps.append({"round": "init", "details": "n < 2 => composite", "explanation": "By definition, primes are integers >= 2."})
         return False, steps
     if n in (2, 3):
-        steps.append({"round": "init", "details": "2 and 3 are prime"})
+        steps.append({"round": "init", "details": "2 and 3 are prime", "explanation": "These are the two smallest prime numbers."})
         return True, steps
     if n % 2 == 0:
-        steps.append({"round": "init", "details": "n is even => composite"})
+        steps.append({"round": "init", "details": "n is even => composite", "explanation": "Any even n > 2 is divisible by 2."})
         return False, steps
 
     rng = random.Random(seed)
@@ -28,6 +28,7 @@ def fermat_test(n: int, rounds: int = 5, seed: int = 42) -> Tuple[bool, List[Dic
                 "base": str(a),
                 "a^(n-1) mod n": str(value),
                 "result": "pass" if passed else "composite witness",
+                "explanation": "For prime n, Fermat expects a^(n-1) ≡ 1 (mod n).",
             }
         )
 
@@ -41,13 +42,13 @@ def miller_rabin_test(n: int, rounds: int = 5, seed: int = 42) -> Tuple[bool, Li
     steps: List[Dict[str, str]] = []
 
     if n < 2:
-        steps.append({"round": "init", "details": "n < 2 => composite"})
+        steps.append({"round": "init", "details": "n < 2 => composite", "explanation": "By definition, primes are integers >= 2."})
         return False, steps
     if n in (2, 3):
-        steps.append({"round": "init", "details": "2 and 3 are prime"})
+        steps.append({"round": "init", "details": "2 and 3 are prime", "explanation": "These are the two smallest prime numbers."})
         return True, steps
     if n % 2 == 0:
-        steps.append({"round": "init", "details": "n is even => composite"})
+        steps.append({"round": "init", "details": "n is even => composite", "explanation": "Any even n > 2 is divisible by 2."})
         return False, steps
 
     d = n - 1
@@ -56,7 +57,13 @@ def miller_rabin_test(n: int, rounds: int = 5, seed: int = 42) -> Tuple[bool, Li
         d //= 2
         s += 1
 
-    steps.append({"round": "init", "details": f"n-1 = 2^{s} * {d}"})
+    steps.append(
+        {
+            "round": "init",
+            "details": f"n-1 = 2^{s} * {d}",
+            "explanation": "Factor n-1 into 2^s * d with d odd for repeated squaring checks.",
+        }
+    )
 
     rng = random.Random(seed)
 
@@ -71,6 +78,7 @@ def miller_rabin_test(n: int, rounds: int = 5, seed: int = 42) -> Tuple[bool, Li
                     "base": str(a),
                     "x0 = a^d mod n": str(x),
                     "result": "pass",
+                    "explanation": "If x0 is 1 or -1 mod n, this round is consistent with primality.",
                 }
             )
             continue
@@ -89,6 +97,7 @@ def miller_rabin_test(n: int, rounds: int = 5, seed: int = 42) -> Tuple[bool, Li
                 "base": str(a),
                 "x0 = a^d mod n": str(x),
                 "result": "pass" if passed else "composite witness",
+                "explanation": "Square x repeatedly; failure to reach -1 mod n reveals compositeness.",
             }
         )
 
@@ -125,13 +134,13 @@ def solovay_strassen_test(n: int, rounds: int = 5, seed: int = 42) -> Tuple[bool
     steps: List[Dict[str, str]] = []
 
     if n < 2:
-        steps.append({"round": "init", "details": "n < 2 => composite"})
+        steps.append({"round": "init", "details": "n < 2 => composite", "explanation": "By definition, primes are integers >= 2."})
         return False, steps
     if n in (2, 3):
-        steps.append({"round": "init", "details": "2 and 3 are prime"})
+        steps.append({"round": "init", "details": "2 and 3 are prime", "explanation": "These are the two smallest prime numbers."})
         return True, steps
     if n % 2 == 0:
-        steps.append({"round": "init", "details": "n is even => composite"})
+        steps.append({"round": "init", "details": "n is even => composite", "explanation": "Any even n > 2 is divisible by 2."})
         return False, steps
 
     rng = random.Random(seed)
@@ -147,6 +156,7 @@ def solovay_strassen_test(n: int, rounds: int = 5, seed: int = 42) -> Tuple[bool
                     "base": str(a),
                     "gcd(a, n)": str(g),
                     "result": "composite witness",
+                    "explanation": "A non-trivial gcd immediately proves n is composite.",
                 }
             )
             return False, steps
@@ -163,6 +173,7 @@ def solovay_strassen_test(n: int, rounds: int = 5, seed: int = 42) -> Tuple[bool
                 "Euler lhs": str(lhs),
                 "Jacobi rhs": str(rhs),
                 "result": "pass" if passed else "composite witness",
+                "explanation": "Compare Euler criterion with Jacobi symbol; mismatch means composite.",
             }
         )
 
@@ -254,14 +265,14 @@ def aks_test(n: int) -> Tuple[bool, List[Dict[str, str]]]:
     steps: List[Dict[str, str]] = []
 
     if n < 2:
-        steps.append({"step": "1", "details": "n < 2 => composite"})
+        steps.append({"step": "1", "details": "n < 2 => composite", "explanation": "By definition, primes are integers >= 2."})
         return False, steps
     if n in (2, 3):
-        steps.append({"step": "1", "details": "2 and 3 are prime"})
+        steps.append({"step": "1", "details": "2 and 3 are prime", "explanation": "These are the two smallest prime numbers."})
         return True, steps
 
     if _is_perfect_power(n):
-        steps.append({"step": "1", "details": "n is a perfect power => composite"})
+        steps.append({"step": "1", "details": "n is a perfect power => composite", "explanation": "If n = a^b with b > 1, n cannot be prime."})
         return False, steps
 
     log_n_sq = int(log2(n) ** 2)
@@ -272,23 +283,41 @@ def aks_test(n: int) -> Tuple[bool, List[Dict[str, str]]]:
             break
         r += 1
 
-    steps.append({"step": "2", "details": f"Found r = {r} with ord_r(n) > log2(n)^2"})
+    steps.append(
+        {
+            "step": "2",
+            "details": f"Found r = {r} with ord_r(n) > log2(n)^2",
+            "explanation": "Choose r large enough to make the polynomial congruence test meaningful.",
+        }
+    )
 
     for a in range(2, min(r + 1, n)):
         g = gcd(a, n)
         if 1 < g < n:
-            steps.append({"step": "3", "details": f"gcd({a}, {n}) = {g} => composite"})
+            steps.append(
+                {
+                    "step": "3",
+                    "details": f"gcd({a}, {n}) = {g} => composite",
+                    "explanation": "A non-trivial common divisor proves n is composite.",
+                }
+            )
             return False, steps
 
-    steps.append({"step": "3", "details": "No non-trivial gcd found"})
+    steps.append({"step": "3", "details": "No non-trivial gcd found", "explanation": "n has no small factors up to r."})
 
     if n <= r:
-        steps.append({"step": "4", "details": "n <= r => prime"})
+        steps.append({"step": "4", "details": "n <= r => prime", "explanation": "With prior checks passed and n <= r, AKS concludes primality."})
         return True, steps
 
     limit = int(((_phi(r)) ** 0.5) * log2(n))
     limit = max(limit, 1)
-    steps.append({"step": "5", "details": f"Polynomial checks up to a = {limit}"})
+    steps.append(
+        {
+            "step": "5",
+            "details": f"Polynomial checks up to a = {limit}",
+            "explanation": "Set the range of polynomial congruence checks required by AKS.",
+        }
+    )
 
     for a in range(1, limit + 1):
         base = [0] * r
@@ -305,9 +334,16 @@ def aks_test(n: int) -> Tuple[bool, List[Dict[str, str]]]:
                 {
                     "step": "6",
                     "details": f"Failed congruence for a = {a} => composite",
+                    "explanation": "A failed congruence means n does not satisfy the AKS prime identity.",
                 }
             )
             return False, steps
 
-    steps.append({"step": "6", "details": "All congruences passed => prime"})
+    steps.append(
+        {
+            "step": "6",
+            "details": "All congruences passed => prime",
+            "explanation": "Passing every required congruence certifies that n is prime.",
+        }
+    )
     return True, steps
