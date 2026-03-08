@@ -1,0 +1,38 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="paint0" x1="0" y1="0" x2="1200" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06223A"/>
+      <stop offset="1" stop-color="#0B3C5D"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#paint0)"/>
+  <g opacity="0.2" stroke="#9FE7D8" stroke-width="1.2">
+    <path d="M40 140H1160"/>
+    <path d="M40 220H1160"/>
+    <path d="M40 300H1160"/>
+    <path d="M40 380H1160"/>
+    <path d="M40 460H1160"/>
+    <path d="M40 540H1160"/>
+    <path d="M40 620H1160"/>
+  </g>
+  <g opacity="0.25" stroke="#F7B267" stroke-width="1.2">
+    <path d="M120 60V740"/>
+    <path d="M260 60V740"/>
+    <path d="M400 60V740"/>
+    <path d="M540 60V740"/>
+    <path d="M680 60V740"/>
+    <path d="M820 60V740"/>
+    <path d="M960 60V740"/>
+    <path d="M1100 60V740"/>
+  </g>
+  <g opacity="0.55" fill="#9FE7D8">
+    <circle cx="120" cy="140" r="4"/>
+    <circle cx="260" cy="300" r="4"/>
+    <circle cx="400" cy="220" r="4"/>
+    <circle cx="540" cy="460" r="4"/>
+    <circle cx="680" cy="300" r="4"/>
+    <circle cx="820" cy="540" r="4"/>
+    <circle cx="960" cy="220" r="4"/>
+    <circle cx="1100" cy="620" r="4"/>
+  </g>
+</svg>
